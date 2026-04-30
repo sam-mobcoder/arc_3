@@ -13,19 +13,20 @@ import onnxruntime as ort
 
 app = FaceAnalysis(
     name="buffalo_l",
-    providers=ort.get_available_providers()
+    providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
 )
 app.prepare(ctx_id=0, det_size=(640, 640))
 
 
 def get_embedding_obj(img, save_image=False):
     faces = app.get(img)
-    if len(faces) > 1:
+    if len(faces) == 0 or len(faces) > 1:
         return None
 
     bbox = faces[0].bbox
     landmarks = faces[0].kps
-    embedding = faces[0].normed_embedding
+    # InstantID expects the ArcFace embedding vector (not the L2-normalized variant).
+    embedding = faces[0].embedding
     gender = faces[0].gender
     age = faces[0].age
 

@@ -1,8 +1,6 @@
 
 from PIL import Image
 import torch
-from transformers import DPTFeatureExtractor, DPTForDepthEstimation
-
 from .model.pose_model import load_pose_model
 from .model.depth_model import load_depth_model
 

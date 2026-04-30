@@ -3,6 +3,7 @@
 from .insightface_arcface import get_embedding_obj
 import cv2
 import torch
+from PIL import Image
 
 def prepare_data(img_path):
     img = cv2.imread(img_path)

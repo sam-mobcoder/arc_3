@@ -1,5 +1,7 @@
 import mediapipe
 import cv2
+import numpy as np
+
 
 mp_pose = mediapipe.solutions.pose
 pose = mp_pose.Pose(
@@ -7,6 +9,9 @@ pose = mp_pose.Pose(
 )
 
 def get_body_features(image, bbox, landmarks):
+    if not isinstance(image, np.ndarray):
+        image = np.array(image)
+
     h, w, _ = image.shape
 
     # Face width
@@ -20,7 +25,7 @@ def get_body_features(image, bbox, landmarks):
     shoulder_width = None
     if result.pose_landmarks:
         lm = result.pose_landmarks.landmark
-        left_shoulder = llm[11]
+        left_shoulder = lm[11]
         right_shoulder = lm[12]
 
         shoulder_width = abs(left_shoulder.x - right_shoulder.x) * w
