@@ -69,7 +69,7 @@ def generate_image(
     # -----------------------------------
     generator = torch.Generator(
         device="cuda"
-    ).manual_seed(123456)
+    )
 
     # -----------------------------------
     # PuLID / FLUX Generation
@@ -81,7 +81,7 @@ def generate_image(
 
         face_image=identity["face_pil"],
 
-        face_embedding=identity["embedding_tensor"],
+        # face_embedding=identity["embedding_tensor"],
 
         generator=generator,
 
