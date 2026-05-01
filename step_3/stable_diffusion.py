@@ -45,23 +45,39 @@ def generate_image(
     # PROMPT
     # -----------------------------------
     prompt = """
-    photorealistic portrait photo of a person,
-    ultra realistic skin texture,
-    realistic eyes,
-    natural lighting,
-    highly detailed face,
-    realistic photography
+    ultra realistic DSLR portrait photograph of a person,
+natural human skin texture,
+visible skin pores,
+realistic imperfect skin,
+high frequency facial details,
+natural lighting,
+photojournalistic realism,
+real camera photography,
+85mm portrait lens,
+shallow depth of field,
+high dynamic range,
+extremely detailed realistic eyes,
+realistic hair strands,
+RAW photograph
     """
 
     negative_prompt = """
-    blurry,
-    distorted face,
-    deformed anatomy,
     cartoon,
-    painting,
-    illustration,
-    low quality,
-    unrealistic eyes
+animation,
+cgi,
+3d render,
+painting,
+illustration,
+airbrushed skin,
+plastic skin,
+beauty filter,
+unrealistic skin,
+smooth face,
+fake eyes,
+oversaturated,
+deformed face,
+blurry,
+low quality
     """
 
     # -----------------------------------
@@ -85,9 +101,9 @@ def generate_image(
 
         generator=generator,
 
-        num_inference_steps=30,
+        num_inference_steps=45,
 
-        guidance_scale=4.0,
+        guidance_scale=3.0,
     )
 
     return image

@@ -5,7 +5,7 @@ from step_3.stable_diffusion import generate_image
 
 
 if __name__ == "__main__":
-    img_path = "face/face_2.png"
+    img_path = "face/face_1.png"
     pose_path = "pose/pose_1.png"
     output_path = "result.png"
 
