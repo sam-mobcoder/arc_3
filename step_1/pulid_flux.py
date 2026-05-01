@@ -29,7 +29,7 @@ def prepare_pulid_data(img_path):
 
     # IMPORTANT:
     # larger crop preserves hairstyle/jawline
-    pad = 80
+    pad = 140
 
     h, w, _ = img.shape
 
@@ -42,7 +42,7 @@ def prepare_pulid_data(img_path):
     face_crop = img[y1:y2, x1:x2]
 
     # FLUX/PuLID likes higher quality reference
-    face_crop = cv2.resize(face_crop, (512, 512))
+    face_crop = cv2.resize(face_crop, (768, 768))
 
     # BGR -> RGB
     face_crop_rgb = cv2.cvtColor(

@@ -150,7 +150,7 @@ class PuLIDFluxPipeline:
         height=1024,
         num_inference_steps=28,
         guidance_scale=4.0,
-        id_weight=1.2,
+        id_weight=0.9,
     ):
 
         # -----------------------------------
