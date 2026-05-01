@@ -52,6 +52,7 @@
 
 import torch
 import numpy as np
+from contextlib import nullcontext
 
 from PuLID.pulid.pipeline_flux import PuLIDPipeline
 
@@ -75,11 +76,32 @@ from einops import rearrange
 from PIL import Image
 
 
+def resolve_runtime_device() -> torch.device:
+    """
+    Prefer CUDA only when the GPU arch is supported by this PyTorch build.
+    Falls back to CPU for unsupported/newer GPUs (e.g. sm_120 mismatch).
+    """
+    if not torch.cuda.is_available():
+        return torch.device("cpu")
+
+    try:
+        major, minor = torch.cuda.get_device_capability()
+        arch = f"sm_{major}{minor}"
+        supported = set(torch.cuda.get_arch_list())
+        if arch in supported:
+            return torch.device("cuda")
+    except Exception:
+        pass
+
+    return torch.device("cpu")
+
+
 class PuLIDFluxPipeline:
 
     def __init__(self):
 
-        self.device = torch.device("cuda")
+        self.device = resolve_runtime_device()
+        self.dtype = torch.bfloat16 if self.device.type == "cuda" else torch.float32
 
         # -----------------------------------
         # LOAD FLUX MODELS
@@ -109,7 +131,7 @@ class PuLIDFluxPipeline:
         self.pulid_model = PuLIDPipeline(
             self.model,
             device=self.device,
-            weight_dtype=torch.bfloat16,
+            weight_dtype=self.dtype,
         )
 
         self.pulid_model.load_pretrain(
@@ -141,7 +163,7 @@ class PuLIDFluxPipeline:
             height,
             width,
             device=self.device,
-            dtype=torch.bfloat16,
+            dtype=self.dtype,
             seed=seed,
         )
 
@@ -208,10 +230,13 @@ class PuLIDFluxPipeline:
             width
         )
 
-        with torch.autocast(
-            device_type="cuda",
-            dtype=torch.bfloat16
-        ):
+        autocast_ctx = (
+            torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+            if self.device.type == "cuda"
+            else nullcontext()
+        )
+
+        with autocast_ctx:
             x = self.ae.decode(x)
 
         x = x.clamp(-1, 1)

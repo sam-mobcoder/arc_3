@@ -11,6 +11,10 @@ from PuLID.flux.modules.autoencoder import AutoEncoder, AutoEncoderParams
 from PuLID.flux.modules.conditioner import HFEmbedder
 
 
+def _model_dtype_for_device(device) -> torch.dtype:
+    return torch.bfloat16 if str(device).startswith("cuda") else torch.float32
+
+
 @dataclass
 class SamplingOptions:
     prompt: str
@@ -156,7 +160,7 @@ def load_flow_model(name: str, device: str = "cuda", hf_download: bool = True):
         ckpt_path = hf_hub_download(configs[name].repo_id, configs[name].repo_flow, local_dir='models')
 
     with torch.device(device):
-        model = Flux(configs[name].params).to(torch.bfloat16)
+        model = Flux(configs[name].params).to(_model_dtype_for_device(device))
 
     if ckpt_path is not None:
         print("Loading checkpoint")
@@ -194,11 +198,19 @@ def load_flow_model_quintized(name: str, device: str = "cuda", hf_download: bool
 
 def load_t5(device: str = "cuda", max_length: int = 512) -> HFEmbedder:
     # max length 64, 128, 256 and 512 should work (if your sequence is short enough)
-    return HFEmbedder("xlabs-ai/xflux_text_encoders", max_length=max_length, torch_dtype=torch.bfloat16).to(device)
+    return HFEmbedder(
+        "xlabs-ai/xflux_text_encoders",
+        max_length=max_length,
+        torch_dtype=_model_dtype_for_device(device),
+    ).to(device)
 
 
 def load_clip(device: str = "cuda") -> HFEmbedder:
-    return HFEmbedder("openai/clip-vit-large-patch14", max_length=77, torch_dtype=torch.bfloat16).to(device)
+    return HFEmbedder(
+        "openai/clip-vit-large-patch14",
+        max_length=77,
+        torch_dtype=_model_dtype_for_device(device),
+    ).to(device)
 
 
 def load_ae(name: str, device: str = "cuda", hf_download: bool = True) -> AutoEncoder:

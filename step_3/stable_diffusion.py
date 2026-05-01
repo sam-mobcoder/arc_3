@@ -68,7 +68,7 @@ def generate_image(
     # GENERATION
     # -----------------------------------
     generator = torch.Generator(
-        device="cuda"
+        device=pipe.device.type
     )
 
     # -----------------------------------
