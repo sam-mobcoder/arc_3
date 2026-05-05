@@ -16,9 +16,8 @@ def prepare_pulid_data(img_path):
     )
 
     if embedding_obj is None:
-        raise Exception(
-            "Invalid image. Only one face should be present."
-        )
+        print(f"[SKIP] Invalid image (requires exactly one face): {img_path}")
+        return None
 
     # -----------------------------------
     # FACE CROP

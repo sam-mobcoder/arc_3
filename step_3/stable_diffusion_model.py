@@ -78,22 +78,10 @@ from PIL import Image
 
 def resolve_runtime_device() -> torch.device:
     """
-    Prefer CUDA only when the GPU arch is supported by this PyTorch build.
-    Falls back to CPU for unsupported/newer GPUs (e.g. sm_120 mismatch).
+    Run on CUDA whenever available.
+    CPU is only used when CUDA is not available.
     """
-    if not torch.cuda.is_available():
-        return torch.device("cpu")
-
-    try:
-        major, minor = torch.cuda.get_device_capability()
-        arch = f"sm_{major}{minor}"
-        supported = set(torch.cuda.get_arch_list())
-        if arch in supported:
-            return torch.device("cuda")
-    except Exception:
-        pass
-
-    return torch.device("cpu")
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class PuLIDFluxPipeline:
@@ -132,6 +120,7 @@ class PuLIDFluxPipeline:
             self.model,
             device=self.device,
             weight_dtype=self.dtype,
+            onnx_provider="gpu" if self.device.type == "cuda" else "cpu",
         )
 
         self.pulid_model.load_pretrain(

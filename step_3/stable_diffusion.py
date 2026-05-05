@@ -1,23 +1,48 @@
 import torch
-
-from step_1.pulid_flux import prepare_pulid_data
-
-from step_2.pose_estimation import get_pose_estimation
+from PIL import Image
 
 from step_3.stable_diffusion_model import load_pipeline
+
+_PIPELINE = None
+_FACE_IMAGE_CACHE = {}
+
+
+def _get_pipeline():
+    global _PIPELINE
+    if _PIPELINE is None:
+        _PIPELINE = load_pipeline()
+    return _PIPELINE
+
+
+def _get_face_image(selfie_path: str):
+    """
+    Keep preprocessing lightweight on CPU and let PuLID pipeline do the heavy
+    identity extraction on GPU/ONNX-CUDA.
+    """
+    if selfie_path not in _FACE_IMAGE_CACHE:
+        try:
+            _FACE_IMAGE_CACHE[selfie_path] = Image.open(selfie_path).convert("RGB")
+        except Exception as exc:
+            print(f"[SKIP] Failed to read image: {selfie_path} ({exc})")
+            _FACE_IMAGE_CACHE[selfie_path] = None
+    return _FACE_IMAGE_CACHE[selfie_path]
 
 
 def generate_image(
     selfie_path,
     pose_path=None,
+    num_inference_steps=0,
+    guidance_scale=0,
+    id_weight=0,
 ):
 
     # -----------------------------------
     # STEP 1 — Identity
     # -----------------------------------
-    identity = prepare_pulid_data(
-        selfie_path
-    )
+    face_image = _get_face_image(selfie_path)
+    if face_image is None:
+        print(f"[SKIP] Invalid source image: {selfie_path}")
+        return None
 
     """
     identity = {
@@ -29,18 +54,15 @@ def generate_image(
     # -----------------------------------
     # STEP 2 — Pose (optional later)
     # -----------------------------------
-    pose_map = None
-
     if pose_path is not None:
-        pose_map = get_pose_estimation(
-            pose_path
-        )
+        # Pose map is currently not consumed by PuLID/FLUX generation in this file.
+        # Skip expensive pose estimation to avoid unnecessary CPU-heavy work.
+        pass
 
     # -----------------------------------
     # STEP 3 — Load Pipeline
     # -----------------------------------
-    pipe = load_pipeline()
-
+    pipe = _get_pipeline()
     # -----------------------------------
     # PROMPT
     # -----------------------------------
@@ -90,20 +112,23 @@ low quality
     # -----------------------------------
     # PuLID / FLUX Generation
     # -----------------------------------
-    image = pipe.generate(
+    try:
+        image = pipe.generate(
         prompt=prompt,
 
         negative_prompt=negative_prompt,
 
-        face_image=identity["face_pil"],
+        face_image=face_image,
 
         # face_embedding=identity["embedding_tensor"],
 
         generator=generator,
-
-        num_inference_steps=45,
-
-        guidance_scale=3.0,
+        num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
+        id_weight=id_weight,
     )
+    except Exception as exc:
+        print(f"[SKIP] Generation failed for {selfie_path}: {exc}")
+        return None
 
     return image
