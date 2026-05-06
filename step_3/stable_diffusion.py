@@ -34,6 +34,7 @@ def generate_image(
     num_inference_steps=0,
     guidance_scale=0,
     id_weight=0,
+    seed=0
 ):
 
     # -----------------------------------
@@ -69,8 +70,11 @@ def generate_image(
     prompt = """
     ultra realistic DSLR portrait photograph of a person,
 natural human skin texture,
+neutral expression,
+front facing,
+full face visible,
 visible skin pores,
-realistic imperfect skin,
+extreamly realistic and perfect skin,
 high frequency facial details,
 natural lighting,
 photojournalistic realism,
@@ -83,6 +87,7 @@ realistic hair strands,
 RAW photograph
     """
 
+   
     negative_prompt = """
     cartoon,
 animation,
@@ -99,7 +104,8 @@ fake eyes,
 oversaturated,
 deformed face,
 blurry,
-low quality
+low quality,
+do not Crop Face 
     """
 
     # -----------------------------------
@@ -115,7 +121,7 @@ low quality
     try:
         image = pipe.generate(
         prompt=prompt,
-
+        seed=seed,
         negative_prompt=negative_prompt,
 
         face_image=face_image,

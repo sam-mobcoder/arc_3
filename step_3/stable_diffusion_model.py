@@ -140,12 +140,13 @@ class PuLIDFluxPipeline:
         num_inference_steps=28,
         guidance_scale=4.0,
         id_weight=0.9,
+        seed=0,
     ):
 
         # -----------------------------------
         # NOISE
         # -----------------------------------
-        seed = torch.seed()
+        # seed = torch.seed()
 
         x = get_noise(
             1,
