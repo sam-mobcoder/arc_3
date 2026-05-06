@@ -6,12 +6,14 @@ from tqdm import tqdm
 
 if __name__ == "__main__":
 
-    guidance_scales = [3.0]
-    id_weights = [1.0]
-    num_inference_steps = [50]
-    seeds = [1, 2, 3, 4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    guidance_scales = [2.5]
+    id_weights = [1.35]
+    num_inference_steps = [45]
+    seeds = [2,5,10]
 
     for image_path in tqdm(os.listdir("images/face")):
+        if image_path.split('.')[0] != 'Selfie6524':
+            continue
         for seed in seeds:
             for num_inference_step in num_inference_steps:
                 for guidance_scale in guidance_scales:

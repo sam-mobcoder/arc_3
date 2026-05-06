@@ -67,7 +67,10 @@ def generate_image(
     # -----------------------------------
     # PROMPT
     # -----------------------------------
-    prompt = """
+    prompt = """upper body portrait, chest up framing, shoulders fully visible,
+subject centered, camera at eye level, symmetrical composition,
+same identity, same facial structure,
+realistic human anatomy, correct shoulder width, natural neck connection,
     ultra realistic DSLR portrait photograph of a person,
 natural human skin texture,
 neutral expression,
@@ -77,10 +80,8 @@ visible skin pores,
 extreamly realistic and perfect skin,
 high frequency facial details,
 natural lighting,
-photojournalistic realism,
 real camera photography,
 85mm portrait lens,
-shallow depth of field,
 high dynamic range,
 extremely detailed realistic eyes,
 realistic hair strands,
@@ -121,7 +122,7 @@ do not Crop Face
     try:
         image = pipe.generate(
         prompt=prompt,
-        seed=seed,
+
         negative_prompt=negative_prompt,
 
         face_image=face_image,
