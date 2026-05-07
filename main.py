@@ -6,13 +6,13 @@ from tqdm import tqdm
 
 if __name__ == "__main__":
 
-    guidance_scales = [2.5]
+    guidance_scales = [3.0]
     id_weights = [1.35]
-    num_inference_steps = [45]
-    seeds = [2,5,10]
+    num_inference_steps = [55]
+    seeds = [2]
 
     for image_path in tqdm(os.listdir("images/face")):
-        if image_path.split('.')[0] != 'Selfie6524':
+        if image_path.split('.')[0] not in ['Selfie6458']:
             continue
         for seed in seeds:
             for num_inference_step in num_inference_steps:
@@ -20,7 +20,7 @@ if __name__ == "__main__":
                     for id_weight in id_weights:
                         result = generate_image(
                             selfie_path=f"images/face/{image_path}",
-                            # pose_path=pose_path,
+                            pose_path=f"images/pose/pose_1.png",
                             num_inference_steps=num_inference_step,
                             guidance_scale=guidance_scale,
                             id_weight=id_weight,
