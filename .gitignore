@@ -3,3 +3,8 @@ __pycache__/
 InstantID/
 .gitignore
 models/
+*.safetensors
+*.ckpt
+*.pt
+*.bin
+*.onnx
