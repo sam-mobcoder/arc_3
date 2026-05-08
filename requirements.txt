@@ -6,7 +6,7 @@ einops==0.8.2
 facexlib==0.3.0
 ftfy==6.3.1
 gradio==4.19.1
-huggingface_hub==0.36.2
+huggingface_hub==0.25.2
 httpx==0.23.3
 insightface==0.7.3
 mediapipe==0.10.14
