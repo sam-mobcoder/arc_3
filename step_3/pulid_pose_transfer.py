@@ -24,6 +24,7 @@ from ip_adapter.ip_adapter_faceid import (
 # =====================================================
 
 DEVICE = "cuda"
+OUTPUT_SIZE = (1024, 1792)
 
 # =====================================================
 # LOAD SDXL
@@ -101,8 +102,14 @@ def generate_identity_transfer(
             "No face detected in selfie"
         )
 
+    # Prefer the largest detected face for stable identity extraction.
+    primary_face = max(
+        faces,
+        key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]),
+    )
+
     faceid_embeds = torch.from_numpy(
-        faces[0].normed_embedding
+        primary_face.normed_embedding
     ).unsqueeze(0).to(
         DEVICE,
         dtype=torch.float16
@@ -116,46 +123,25 @@ def generate_identity_transfer(
         pose_path
     ).convert("RGB")
 
-    pose_image = pose_image.resize(
-        (1024, 1792)
-    )
+    pose_image = pose_image.resize(OUTPUT_SIZE)
 
     # ============================================
     # PROMPT
     # ============================================
 
     prompt = """
-    ultra realistic full body human,
-    preserve original pose,
-    preserve original body shape,
-    preserve original clothes,
-    preserve original anatomy,
-    preserve original proportions,
-    realistic skin texture,
-    realistic eyes,
-    realistic hair,
-    DSLR photography,
-    cinematic lighting,
-    photorealistic,
-    highly detailed realistic person
+    RAW photo, ultra realistic human portrait, preserve exact identity,
+    same person as reference selfie, natural skin texture, realistic pores,
+    realistic eyes, realistic hairline, realistic facial proportions,
+    preserve original pose, preserve original body shape, preserve original clothes,
+    true-to-life color, high detail, 85mm lens, studio photo
     """
 
     negative_prompt = """
-    cartoon,
-    anime,
-    3d render,
-    cgi,
-    blurry,
-    deformed face,
-    extra limbs,
-    mutated body,
-    ugly,
-    fake skin,
-    unrealistic anatomy,
-    distorted eyes,
-    malformed face,
-    oversmoothed skin,
-    duplicate body
+    cartoon, anime, painting, illustration, 3d render, cgi, doll, waxy skin,
+    plastic skin, airbrushed face, over-processed skin, unrealistic face,
+    deformed face, distorted eyes, malformed face, asymmetrical eyes,
+    extra limbs, mutated body, blurry, lowres, duplicate body
     """
 
     # ============================================
@@ -172,11 +158,14 @@ def generate_identity_transfer(
 
         negative_prompt=negative_prompt,
 
-        strength=0.32,
+        scale=1.2,
+        s_scale=1.1,
+        strength=0.25,
 
-        num_inference_steps=40,
+        num_samples=1,
+        num_inference_steps=55,
 
-        guidance_scale=6.5,
+        guidance_scale=5.0,
     )
     image = images[0]
 

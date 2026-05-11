@@ -8,3 +8,4 @@ models/
 *.pt
 *.bin
 *.onnx
+.env/
