@@ -21,29 +21,31 @@ def load_pose_pipeline():
     return _POSE_PIPELINE
 
 
-def apply_pose(base_image, pose_map, image_width, image_height):
-
+def apply_pose(base_image, pose_path, pose_map, image_width, image_height):
+    """
+    Use the pose reference photo as img2img init so layout follows the pose image;
+    OpenPose map aligns skeleton. base_image kept for API compatibility.
+    """
     pipe = load_pose_pipeline()
 
-    prompt = """full body photo of same person,
-following exact pose,
-correct anatomy,
-photorealistic"""
+    prompt = """full body photograph, same identity as reference portrait,
+exact pose and body layout as OpenPose control,
+photorealistic, natural skin, detailed face,
+correct anatomy"""
 
     target_size = (image_width, image_height)
 
-    base_image = base_image.resize(target_size)
+    pose_rgb = Image.open(pose_path).convert("RGB").resize(target_size)
     pose_map = pose_map.resize(target_size)
-    
-    
+
     image = pipe(
         prompt=prompt,
-        image=base_image,                # THIS IS IMPORTANT
-        control_image=pose_map,          # pose guidance
-        strength=0.30,                   # CRITICAL (not >0.3)
-        guidance_scale=2.8,
-        num_inference_steps=30,
-        controlnet_conditioning_scale=1.0
+        image=pose_rgb,
+        control_image=pose_map,
+        strength=0.48,
+        guidance_scale=3.2,
+        num_inference_steps=35,
+        controlnet_conditioning_scale=1.15,
     ).images[0]
 
     return image
