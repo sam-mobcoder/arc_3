@@ -109,7 +109,7 @@ DSLR photo
 neutral lips,
 natural mouth shape,
 minimal makeup,
-natural female face
+natural male face
     """
 #     prompt = """upper body portrait, chest up framing, shoulders fully visible,
 # subject centered, camera at eye level, symmetrical composition,
@@ -191,13 +191,16 @@ natural female face
             id_weight=id_weight,
             width=image_width,
             height=image_height,
+            seed=seed,
         )
         with open("base_image.png", "wb") as f:
             image.save(f)
 
         pose_map = get_pose_estimation(pose_path)
 
-        final_image = apply_pose(image, pose_path, pose_map, image_width, image_height)
+        final_image = apply_pose(
+            image, pose_path, pose_map, image_width, image_height, base_portrait=image
+        )
 
         print("-----------> Identity Face Regeneration:-")
         try:

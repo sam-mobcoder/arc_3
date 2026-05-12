@@ -21,31 +21,54 @@ def load_pose_pipeline():
     return _POSE_PIPELINE
 
 
-def apply_pose(base_image, pose_path, pose_map, image_width, image_height):
+def apply_pose(
+    base_image,
+    pose_path,
+    pose_map,
+    image_width,
+    image_height,
+    base_portrait=None,
+    pose_init_weight=0.58,
+):
     """
-    Use the pose reference photo as img2img init so layout follows the pose image;
-    OpenPose map aligns skeleton. base_image kept for API compatibility.
+    Blend pose reference with Flux portrait for img2img init: pose image drives layout,
+    base_portrait (PuLID output) carries identity, skin tone, and face structure.
+    pose_init_weight: fraction of pose_rgb in the blend (rest is base portrait).
     """
     pipe = load_pose_pipeline()
 
-    prompt = """full body photograph, same identity as reference portrait,
-exact pose and body layout as OpenPose control,
-photorealistic, natural skin, detailed face,
-correct anatomy"""
+    prompt = """professional full body photograph, exact same person as the portrait reference,
+same face identity, same facial features, natural skin tone matching reference,
+body pose and limb positions following OpenPose skeleton exactly,
+photorealistic, sharp eyes, detailed face, natural lighting,
+fully clothed, correct hands and feet, coherent anatomy"""
+
+    negative_prompt = """different person, wrong face, identity change, duplicate face,
+deformed hands, extra fingers, fused limbs, low quality, blurry face,
+cartoon, illustration, doll, plastic skin, oversmoothed"""
 
     target_size = (image_width, image_height)
 
-    pose_rgb = Image.open(pose_path).convert("RGB").resize(target_size)
-    pose_map = pose_map.resize(target_size)
+    pose_rgb = Image.open(pose_path).convert("RGB").resize(target_size, Image.Resampling.LANCZOS)
+    pose_map = pose_map.resize(target_size, Image.Resampling.LANCZOS)
+
+    ref = base_portrait if base_portrait is not None else base_image
+    ref = ref.convert("RGB").resize(target_size, Image.Resampling.LANCZOS)
+
+    # PIL blend: out = pose * w_pose + ref * (1 - w_pose)
+    w_pose = float(pose_init_weight)
+    w_pose = max(0.35, min(0.72, w_pose))
+    init_image = Image.blend(ref, pose_rgb, w_pose)
 
     image = pipe(
         prompt=prompt,
-        image=pose_rgb,
+        negative_prompt=negative_prompt,
+        image=init_image,
         control_image=pose_map,
-        strength=0.48,
-        guidance_scale=3.2,
-        num_inference_steps=35,
-        controlnet_conditioning_scale=1.15,
+        strength=0.42,
+        guidance_scale=3.4,
+        num_inference_steps=40,
+        controlnet_conditioning_scale=1.12,
     ).images[0]
 
     return image

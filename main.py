@@ -12,7 +12,7 @@ if __name__ == "__main__":
     seeds = [2]
 
     for image_path in tqdm(os.listdir("images/face")):
-        if image_path.split('.')[0] not in ['Selfie7677']:
+        if image_path.split('.')[0] not in ['Selfie41272']:
             continue
         for seed in seeds:
             for num_inference_step in num_inference_steps:
@@ -20,7 +20,7 @@ if __name__ == "__main__":
                     for id_weight in id_weights:
                         result = generate_image(
                             selfie_path=f"images/face/{image_path}",
-                            pose_path=f"images/pose/pose_6.png",
+                            pose_path=f"images/pose/pose_5.png",
                             num_inference_steps=num_inference_step,
                             guidance_scale=guidance_scale,
                             id_weight=id_weight,

@@ -213,7 +213,7 @@ class FacialInpainting:
             ref = reference_portrait.convert("RGB").resize((width, height), Image.Resampling.LANCZOS)
             ref_np = np.array(ref).astype(np.float32)
             mcore = (mask_core.astype(np.float32) / 255.0)[..., None]
-            stabilize = 0.28
+            stabilize = 0.42
             blended_np = blended_np * (1.0 - mcore * stabilize) + ref_np * (mcore * stabilize)
 
         blended_np = np.clip(blended_np, 0, 255).astype(np.uint8)
