@@ -2,10 +2,10 @@ env/
 __pycache__/
 InstantID/
 .gitignore
-models/
 *.safetensors
 *.ckpt
 *.pt
 *.bin
 *.onnx
 .env/
+.cache/
