@@ -20,7 +20,7 @@ if __name__ == "__main__":
                     for id_weight in id_weights:
                         result = generate_image(
                             selfie_path=f"images/face/{image_path}",
-                            pose_path=f"images/pose/pose_1.png",
+                            pose_path=f"images/pose/pose_6.png",
                             num_inference_steps=num_inference_step,
                             guidance_scale=guidance_scale,
                             id_weight=id_weight,

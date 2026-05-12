@@ -1,9 +1,11 @@
 import torch
+import numpy as np
 from PIL import Image
 
-from step_3.stable_diffusion_model import load_pipeline
 from step_2.pose_transfer import apply_pose
 from step_2.pose_estimation import get_pose_estimation
+from step_3.stable_diffusion_model import load_pipeline
+from step_4.identity_face_regeneration import ( IdentityFaceRegeneration )
 
 _PIPELINE = None
 _FACE_IMAGE_CACHE = {}
@@ -45,6 +47,7 @@ def generate_image(
     # STEP 1 — Identity
     # -----------------------------------
     face_image = _get_face_image(selfie_path)
+    
     if face_image is None:
         print(f"[SKIP] Invalid source image: {selfie_path}")
         return None
@@ -68,6 +71,17 @@ def generate_image(
     # STEP 3 — Load Pipeline
     # -----------------------------------
     pipe = _get_pipeline()
+    identity_regenerator = IdentityFaceRegeneration(
+        pulid_pipeline=pipe,
+    )
+
+    selfie_id_embeddings, uncond_id_embeddings = (
+        pipe.pulid_model.get_id_embedding(
+            np.array(face_image),
+            cal_uncond=True,
+        )
+    )
+
     # -----------------------------------
     # PROMPT
     # -----------------------------------
@@ -181,14 +195,23 @@ natural female face
         with open("base_image.png", "wb") as f:
             image.save(f)
 
-        # use POse Estimation to get pose map
-        print("-----------> Getting Pose Estimation:-", pose_path)
         pose_map = get_pose_estimation(pose_path)
-        print("-----------> Pose Map Got:-")
 
-        print("-----------> Generating Fineal Image:-")
-        final_image = apply_pose(image, pose_map, image_width, image_height)
-        print("-----------> Final Image Generated:-")
+        final_image = apply_pose(image, pose_path, pose_map, image_width, image_height)
+
+        print("-----------> Identity Face Regeneration:-")
+        try:
+            final_image = identity_regenerator.run(
+                target_image=final_image,
+                face_embedding=selfie_id_embeddings,
+                prompt=prompt,
+                reference_portrait=image,
+                uncond_id=uncond_id_embeddings,
+            )
+        except Exception as reg_exc:
+            print(f"[WARN] Step 4 face regeneration skipped, using pose-stage image only: {reg_exc}")
+
+        print("-----------> Identity Face Regeneration Complete:-")
 
     except Exception as exc:
         print(f"[SKIP] Generation failed for {selfie_path}: {exc}")
